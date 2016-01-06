@@ -1,0 +1,2587 @@
+.data
+	colorverde:		.word 0x0001f901  #01f901 es color verde moco de gorila en hexadecimal
+	colorBlanco:		.word 0x00ffffff  #cambiar por ColorBlanco
+	ColorFondo:		.word 0x00000000  #Color de fondo, en este caso negro
+	ColorDorado:		.word 0x00ccac00  #color Dorado para "presione e para jugar"
+
+	halconX:		.word 0		# Coordenada inicial de jugardor en X
+	halconY:		.word 31	# Coordenada inicial de jugardor en Y
+	halconColor:		.word 0x00FF0000	# Color rojo para jugador
+	anchoPantalla:		.word 64
+	barraColor:		.word 0x000800080	# Color morado para barra
+	velocidad: 		.word 50	# Velocidad de juego
+	direccion:		.word 119
+	enemigo1X:		.word 63
+	enemigo1Y: 		.word 11
+	enemigo2X:		.word 63
+	enemigo2Y: 		.word 38
+	enemigo3X:		.word 63
+	enemigo3Y: 		.word 62
+	enemigoColor:		.word 0x00000ff04 #Colores del enemigo
+	vidas:			.word 0 
+	vidascolor: 		.word 0x0000C13E7
+	velocidadEnemigo:	.word 0
+	InicioDisparo:		.word 0           #Se usará para iniciar el loop del disparo
+	DisparoY:		.word 0		  #Se usará para guardar la coordenada en y del disparo
+	UltimaTecla:		.word 0		  #se usará para guardar la última tecla presionada entre W y S
+	Score:			.word 0		  #se usará para guardar la cantidad de enemigos eliminados
+	ScoreColor:		.word 0x0000D6B08 #color verde para la palabra SCORE
+	ScoreInicial:		.word 0		  #Se usará para guardar el score actual
+	PrimeraPartida:		.word 0		  #Se usará para indicar que ya se dio la primera partida
+	seg:			.word 0		# Segundos	
+	tiempoEnemigos:		.word 0		# Tiempo en que se mueve el enemigo
+	
+
+.text
+
+li $a0, 0		
+sw $a0, PrimeraPartida
+
+NewGame:
+	
+	li $a0, 0		# Carga cero en los siguientes parámetros
+	sw $a0, vidas
+	sw $a0, velocidadEnemigo
+	sw $a0, InicioDisparo
+	sw $a0, UltimaTecla
+	sw $a0, Score
+	sw $a0, ScoreInicial
+	sw $a0, seg
+	li $a0, 11		# Carga 11 en el siguiente parámetro
+	sw $a0, tiempoEnemigos
+	
+	jal ClearBoard                   	 #dimensiona la pantalla y la pone en negro
+	
+	lw $a0, PrimeraPartida
+	beqz $a0, NoPrimeraPartida		#si PrimeraPartida es igual a cero no dibujará "GAME OVER" al llegar a NewGame, porque no se a dado la primera partida, o no se a perdido una
+		#############################################
+		#Dibujar palabra GAME:                      #
+		#############################################
+		li $a0, 61			#Tono		
+		li $a1, 500			#Duración en ms
+		li $a2, 25			#Instrumento (guitarra)
+		li $a3, 127			#Volumen (máximo)
+		li $v0, 31			#servicio 31, En MARS sirve para emitir sonidos
+		syscall				#emite el sonido
+		#G:
+		li $a0, 15
+		li $a1, 20
+		lw $a2, colorBlanco
+		li $a3, 20
+		jal DrawHorizontalLine
+		li $a1, 21
+		jal DrawHorizontalLine
+		li $a1, 28
+		jal DrawHorizontalLine
+		li $a1, 29
+		jal DrawHorizontalLine
+		li $a1, 22
+		li $a3, 27
+		jal DrawVerticalLine
+		li $a0, 16
+		jal DrawVerticalLine
+		li $a0, 19
+		li $a1, 25
+		jal DrawVerticalLine
+		li $a0, 20
+		jal DrawVerticalLine
+		li $a0, 18
+		jal DrawPoint
+		#A:
+		li $a0, 22
+		li $a1, 21
+		li $a3, 29
+		jal DrawVerticalLine
+		li $a0, 23
+		li $a1, 20
+		jal DrawVerticalLine
+		li $a0, 26
+		jal DrawVerticalLine
+		li $a0, 27
+		li $a1, 21
+		jal DrawVerticalLine
+		li $a0, 24
+		li $a1, 20
+		li $a3, 25
+		jal DrawHorizontalLine
+		li $a1, 21
+		jal DrawHorizontalLine
+		li $a1, 24
+		jal DrawHorizontalLine
+		li $a1, 25
+		jal DrawHorizontalLine
+		#M:
+		li $a0, 29
+		li $a1, 20
+		li $a3, 29
+		jal DrawVerticalLine
+		li $a0, 30
+		jal DrawVerticalLine
+		li $a0, 37
+		jal DrawVerticalLine
+		li $a0, 38
+		jal DrawVerticalLine
+		li $a0, 31
+		li $a3, 22
+		jal DrawVerticalLine
+		li $a0, 36
+		jal DrawVerticalLine
+		li $a0, 32
+		li $a1, 21
+		li $a3, 23
+		jal DrawVerticalLine
+		li $a0, 35
+		jal DrawVerticalLine
+		li $a0, 33
+		li $a1, 22
+		li $a3, 29
+		jal DrawVerticalLine
+		li $a0, 34
+		jal DrawVerticalLine
+		#E:
+		li $a0, 40
+		li $a1, 20
+		li $a3, 45
+		jal DrawHorizontalLine
+		li $a1, 21
+		jal DrawHorizontalLine
+		li $a1, 28
+		jal DrawHorizontalLine
+		li $a1, 29
+		jal DrawHorizontalLine
+		li $a1, 24
+		li $a3, 44
+		jal DrawHorizontalLine
+		li $a1, 25
+		jal DrawHorizontalLine
+		li $a1, 22
+		li $a3, 41
+		jal DrawHorizontalLine
+		li $a1, 23
+		jal DrawHorizontalLine
+		li $a1, 27
+		jal DrawHorizontalLine
+		li $a1, 26
+		jal DrawHorizontalLine
+		
+		#############################################
+		#Dibujar palabra OVER:                      #
+		#############################################		
+		#O:						
+		li $a0, 17
+		li $a1, 33
+		li $a3, 40
+		jal DrawVerticalLine
+		li $a0, 22
+		jal DrawVerticalLine
+		li $a0, 18
+		li $a1, 32
+		li $a3, 41
+		jal DrawVerticalLine
+		li $a0, 21
+		jal DrawVerticalLine
+		li $a0, 19
+		li $a3, 33
+		jal DrawVerticalLine
+		li $a0, 20
+		jal DrawVerticalLine
+		li $a0, 19
+		li $a1, 40
+		li $a3, 41
+		jal DrawVerticalLine
+		li $a0, 20
+		jal DrawVerticalLine
+		#V:
+		li $a0, 24
+		li $a1, 32
+		li $a3, 39
+		jal DrawVerticalLine
+		li $a0, 29
+		jal DrawVerticalLine
+		li $a0, 25
+		li $a3, 40
+		jal DrawVerticalLine
+		li $a0, 28
+		jal DrawVerticalLine
+		li $a0, 26
+		li $a1, 40
+		li $a3, 41
+		jal DrawVerticalLine
+		li $a0, 27
+		jal DrawVerticalLine
+		#E:
+		li $a0, 31
+		li $a1, 32
+		li $a3, 36
+		jal DrawHorizontalLine
+		li $a1, 33
+		jal DrawHorizontalLine
+		li $a1, 40
+		jal DrawHorizontalLine
+		li $a1, 41
+		jal DrawHorizontalLine
+		li $a1, 36
+		li $a3, 35
+		jal DrawHorizontalLine
+		li $a1, 37
+		jal DrawHorizontalLine
+		li $a1, 34
+		li $a3, 32
+		jal DrawHorizontalLine
+		li $a1, 35
+		jal DrawHorizontalLine
+		li $a1, 38
+		jal DrawHorizontalLine
+		li $a1, 39
+		jal DrawHorizontalLine
+		#R:
+		li $a0, 38
+		li $a1, 32
+		li $a3, 41
+		jal DrawVerticalLine		
+		li $a0, 39
+		jal DrawVerticalLine
+		li $a0, 42
+		jal DrawVerticalLine
+		li $a0, 43
+		li $a1, 37
+		jal DrawVerticalLine
+		li $a1, 33
+		li $a3, 35
+		jal DrawVerticalLine
+		li $a0, 40
+		li $a1, 32
+		li $a3, 33
+		jal DrawVerticalLine	
+		li $a0, 41
+		jal DrawVerticalLine	
+		li $a0, 40
+		li $a1, 36
+		li $a3, 37
+		jal DrawVerticalLine
+		li $a0, 41
+		jal DrawVerticalLine
+		
+		#SLEEP para que el mensaje dure un tiempo en pantalla
+		li $a0, 4000	#Tiempo en ms
+		li $v0, 32 	#valor syscall para "sleep"
+		syscall
+	
+	NoPrimeraPartida:
+	
+	
+	
+	jal ClearBoard                   	 #dimensiona la pantalla y la pone en negro
+	StarWars:            	 		 #Dibuja la palabra "star wars"
+		
+		#############################################
+		#Dibujar palabra STAR:                      #
+		#############################################
+		li $a0, 19
+		li $a1, 4
+		lw $a2, colorBlanco
+		li $a3, 30
+		jal DrawHorizontalLine
+		li $a0, 33
+		li $a3, 36
+		jal DrawHorizontalLine
+		li $a0, 39
+		li $a3, 43
+		jal DrawHorizontalLine
+		li $a0, 19
+		li $a1, 5
+		li $a3, 30
+		jal DrawHorizontalLine
+		li $a0, 33
+		li $a3, 36
+		jal DrawHorizontalLine
+		li $a0, 39
+		li $a3, 44
+		jal DrawHorizontalLine
+		li $a0, 34
+		li $a1, 8
+		li $a3, 35
+		jal DrawHorizontalLine
+		li $a0, 41
+		li $a3, 42
+		jal DrawHorizontalLine
+		li $a0, 34
+		li $a1, 9
+		li $a3, 35
+		jal DrawHorizontalLine
+		li $a0, 41
+		li $a3, 42
+		jal DrawHorizontalLine
+		##################
+		li $a0, 16
+		li $a1, 12
+		lw $a2, colorBlanco
+		li $a3, 23
+		jal DrawHorizontalLine
+		li $a0, 27
+		li $a3, 28
+		jal DrawHorizontalLine
+		li $a0, 32
+		li $a3, 33
+		jal DrawHorizontalLine
+		li $a0, 36
+		li $a3, 37
+		jal DrawHorizontalLine
+		li $a0, 39
+		li $a3, 40
+		jal DrawHorizontalLine
+		li $a0, 43
+		li $a3, 47
+		jal DrawHorizontalLine
+		li $a0, 16
+		li $a1, 13
+		li $a3, 23
+		jal DrawHorizontalLine
+		li $a0, 19
+		li $a1, 8
+		li $a3, 23
+		jal DrawHorizontalLine
+		li $a0, 19
+		li $a1, 9
+		li $a3, 23
+		jal DrawHorizontalLine
+		li $a0, 27
+		li $a1, 13
+		li $a3, 28
+		jal DrawHorizontalLine
+		li $a0, 32
+		li $a3, 33
+		jal DrawHorizontalLine
+		li $a0, 36
+		li $a3, 37
+		jal DrawHorizontalLine
+		li $a0, 39
+		li $a3, 40
+		jal DrawHorizontalLine
+		li $a0, 43
+		li $a3, 47
+		jal DrawHorizontalLine
+		#########################
+		li $a0, 27
+		li $a1, 5
+		li $a3, 11
+		jal DrawVerticalLine
+		li $a0, 28
+		jal DrawVerticalLine
+		li $a0, 32
+		jal DrawVerticalLine
+		li $a0, 33
+		jal DrawVerticalLine
+		li $a0, 36
+		jal DrawVerticalLine
+		li $a0, 37
+		jal DrawVerticalLine	
+		li $a0, 39
+		jal DrawVerticalLine
+		li $a0, 40
+		jal DrawVerticalLine
+		li $a0, 43
+		jal DrawVerticalLine
+		li $a0, 44
+		jal DrawVerticalLine
+		li $a0, 19
+		li $a3, 8
+		jal DrawVerticalLine
+		li $a0, 20
+		jal DrawVerticalLine
+		li $a0, 22
+		li $a1, 8
+		li $a3, 11
+		jal DrawVerticalLine
+		li $a0, 23
+		li $a3, 12
+		jal DrawVerticalLine		
+		###################Cambia a negro el punto de la R
+		li $a0, 44
+		li $a1, 8
+		lw $a2, ColorFondo
+		jal DrawPoint	
+		#############################################
+		#Dibujar palabra WARS:                      #
+		#############################################								
+		li $a0, 16 #empieza la W
+		li $a1, 15
+		lw $a2, colorBlanco 
+		li $a3, 20
+		jal DrawVerticalLine
+		li $a0, 17 
+		li $a3, 22
+		jal DrawVerticalLine						
+		li $a0, 18
+		li $a1, 21
+		li $a3, 24												
+		jal DrawVerticalLine
+		li $a0, 19
+		li $a3, 24												
+		jal DrawVerticalLine
+		li $a0, 20
+		li $a1, 15 
+		li $a3, 22
+		jal DrawVerticalLine
+		li $a0, 21 
+		jal DrawVerticalLine
+		li $a0, 24 
+		jal DrawVerticalLine
+		li $a0, 25 
+		li $a3, 21
+		jal DrawVerticalLine
+		li $a0, 22
+		li $a1, 21
+		li $a3, 24												
+		jal DrawVerticalLine
+		li $a0, 23
+		li $a3, 24												
+		jal DrawVerticalLine
+		li $a0, 27  #empieza la A
+		li $a1, 16 
+		li $a3, 24
+		jal DrawVerticalLine
+		li $a0, 32
+		jal DrawVerticalLine
+		li $a0, 28
+		li $a1, 15 
+		li $a3, 24
+		jal DrawVerticalLine
+		li $a0, 31
+		jal DrawVerticalLine
+		li $a0, 29
+		li $a1, 15 
+		li $a3, 16
+		jal DrawVerticalLine
+		li $a0, 30
+		jal DrawVerticalLine
+		li $a0, 29
+		li $a1, 19 
+		li $a3, 20
+		jal DrawVerticalLine
+		li $a0, 30
+		jal DrawVerticalLine
+		li $a0, 34  #empieza la R
+		li $a1, 15 
+		li $a3, 24
+		jal DrawVerticalLine
+		li $a0, 35
+		jal DrawVerticalLine
+		li $a0, 38 
+		jal DrawVerticalLine
+		li $a0, 39
+		li $a1, 16
+		jal DrawVerticalLine
+		li $a0, 36
+		li $a1, 15 
+		li $a3, 16
+		jal DrawVerticalLine
+		li $a0, 37
+		jal DrawVerticalLine
+		li $a0, 36
+		li $a1, 19 
+		li $a3, 20
+		jal DrawVerticalLine
+		li $a0, 37
+		jal DrawVerticalLine
+		li $a0, 39 #Cambia a negro el punto de la R
+		li $a1, 19
+		lw $a2, ColorFondo
+		jal DrawPoint	
+		#Empieza la S:
+		li $a0, 41
+		li $a1, 15
+		lw $a2, colorBlanco
+		li $a3, 47
+		jal DrawHorizontalLine
+		li $a1, 16
+		jal DrawHorizontalLine
+		li $a0, 40
+		li $a1, 23
+		li $a3, 46
+		jal DrawHorizontalLine
+		li $a1, 24
+		jal DrawHorizontalLine
+		li $a0, 41
+		li $a1, 19
+		li $a3, 46
+		jal DrawHorizontalLine
+		li $a1, 20
+		jal DrawHorizontalLine
+		li $a1, 17
+		li $a3, 42
+		jal DrawHorizontalLine
+		li $a1, 18
+		jal DrawHorizontalLine
+		li $a0, 45
+		li $a1, 21
+		li $a3, 46
+		jal DrawHorizontalLine
+		li $a1, 22
+		jal DrawHorizontalLine
+	
+		
+		#############################################
+		#Dibujar PRESIONE E:                        #
+		#############################################	
+		
+		
+		
+		#comienzo en las coordenadas (14,35) 
+		li $a0, 14  			#empiezo la mayor cantidad de lineas verticales que puedo
+		li $a1, 35
+		lw $a2, ColorDorado 		#Van a ser de color dorado
+		li $a3, 39   			#el valor en y máximo para el alto de las letras
+		jal DrawVerticalLine 		#P
+		li $a0, 16
+		li $a3, 37
+		jal DrawVerticalLine		#P
+		li $a0, 18 
+		li $a3, 39
+		jal DrawVerticalLine		#R
+		li $a0, 22 
+		jal DrawVerticalLine		#E
+		li $a0, 26 
+		li $a3, 37
+		jal DrawVerticalLine		#S
+		li $a0, 28
+		li $a1, 37
+		li $a3, 39
+		jal DrawVerticalLine		#S
+		li $a0, 30
+		li $a1, 35
+		jal DrawVerticalLine		#I
+		li $a0, 32 
+		jal DrawVerticalLine		#O
+		li $a0, 34
+		jal DrawVerticalLine		#O
+		li $a0, 36 
+		jal DrawVerticalLine		#N		
+		li $a0, 40 
+		jal DrawVerticalLine		#N
+		li $a0, 42 
+		jal DrawVerticalLine		#E
+		li $a0, 47 
+		jal DrawVerticalLine		#E
+		
+		#Dibujo los puntos para completar las letras:
+		li $a0, 15
+		li $a1, 35
+		jal DrawPoint #P
+		li $a1, 37
+		jal DrawPoint #P
+		li $a0, 19
+		li $a1, 35
+		jal DrawPoint #R
+		li $a1, 37
+		jal DrawPoint #R
+		li $a0, 20
+		li $a1, 36
+		jal DrawPoint #R
+		li $a1, 38
+		jal DrawPoint #R
+		li $a1, 39
+		jal DrawPoint #R
+		li $a0, 23
+		li $a1, 35
+		jal DrawPoint #E
+		li $a1, 37
+		jal DrawPoint #E
+		li $a1, 39
+		jal DrawPoint #E
+		li $a0, 24    #lo mismo que antes pero cambio x a 24
+		li $a1, 35
+		jal DrawPoint #E
+		li $a1, 37
+		jal DrawPoint #E
+		li $a1, 39
+		jal DrawPoint #E
+		li $a0, 26
+		li $a1, 39
+		jal DrawPoint #S
+		li $a0, 27
+		li $a1, 35
+		jal DrawPoint #S
+		li $a1, 37
+		jal DrawPoint #S
+		li $a1, 39
+		jal DrawPoint #S
+		li $a0, 28
+		li $a1, 35
+		jal DrawPoint #S
+		li $a0, 33
+		jal DrawPoint #O
+		li $a1, 39
+		jal DrawPoint #O
+		li $a0, 37
+		li $a1, 36
+		jal DrawPoint #N
+		li $a0, 38
+		li $a1, 37
+		jal DrawPoint #N
+		li $a0, 39
+		li $a1, 38
+		jal DrawPoint #N
+		li $a0, 43
+		li $a1, 35
+		jal DrawPoint #E
+		li $a1, 37
+		jal DrawPoint #E
+		li $a1, 39
+		jal DrawPoint #E
+		li $a0, 44    
+		li $a1, 35
+		jal DrawPoint #E
+		li $a1, 37
+		jal DrawPoint #E
+		li $a1, 39
+		jal DrawPoint #E
+		li $a0, 48
+		li $a1, 35
+		jal DrawPoint #E (última)
+		li $a1, 37
+		jal DrawPoint #E
+		li $a1, 39
+		jal DrawPoint #E
+		li $a0, 49    
+		li $a1, 35
+		jal DrawPoint #E
+		li $a1, 37
+		jal DrawPoint #E
+		li $a1, 39
+		jal DrawPoint #E
+		
+		
+		#############################################
+		#Dibujar "PARA JUGAR":                      #
+		#############################################	
+		
+		
+		#lINEAS VERTICALES:
+		li $a0, 13
+		li $a1, 42
+		li $a3, 46
+		jal DrawVerticalLine		#P
+		li $a0, 15
+		li $a3, 44
+		jal DrawVerticalLine		#P
+		li $a0, 17
+		li $a3, 46
+		jal DrawVerticalLine		#A
+		li $a0, 19
+		jal DrawVerticalLine		#A
+		li $a0, 21
+		jal DrawVerticalLine		#R
+		li $a0, 25
+		jal DrawVerticalLine		#A
+		li $a0, 27
+		jal DrawVerticalLine		#A
+		li $a0, 31
+		li $a1, 45
+		li $a3, 46
+		jal DrawVerticalLine		#J
+		li $a0, 33
+		li $a1, 42
+		jal DrawVerticalLine		#J
+		li $a0, 35
+		jal DrawVerticalLine		#U
+		li $a0, 37
+		jal DrawVerticalLine		#U
+		li $a0, 39
+		jal DrawVerticalLine		#G
+		li $a0, 42
+		li $a1, 44
+		jal DrawVerticalLine		#G
+		li $a0, 44
+		li $a1, 42
+		jal DrawVerticalLine		#A
+		li $a0, 46
+		jal DrawVerticalLine		#A
+		li $a0, 48
+		jal DrawVerticalLine		#R
+		li $a0, 50
+		li $a1, 45
+		jal DrawVerticalLine		#R
+		
+		#Dibujo los puntos para completar las letras:
+		li $a0, 14
+		li $a1, 42
+		jal DrawPoint #P
+		li $a1, 44
+		jal DrawPoint #P
+		li $a0, 18
+		li $a1, 42
+		jal DrawPoint #A
+		li $a1, 44
+		jal DrawPoint #A
+		li $a0, 22
+		li $a1, 42
+		jal DrawPoint #R
+		li $a1, 44
+		jal DrawPoint #R
+		li $a0, 23
+		li $a1, 43
+		jal DrawPoint #R
+		li $a1, 45
+		jal DrawPoint #R
+		li $a1, 46
+		jal DrawPoint #R
+		li $a0, 26
+		li $a1, 42
+		jal DrawPoint #A
+		li $a1, 44
+		jal DrawPoint #A
+		li $a0, 32
+		li $a1, 46
+		jal DrawPoint #J
+		li $a0, 36
+		jal DrawPoint #U
+		li $a0, 40
+		jal DrawPoint #G
+		li $a0, 41
+		jal DrawPoint #G
+		li $a0, 40
+		li $a1, 42
+		jal DrawPoint #G
+		li $a0, 41
+		jal DrawPoint #G
+		li $a0, 42
+		jal DrawPoint #G
+		li $a0, 41
+		li $a1, 44
+		jal DrawPoint #G
+		li $a0, 45
+		li $a1, 42
+		jal DrawPoint #A
+		li $a1, 44
+		jal DrawPoint #A
+		li $a0, 49
+		li $a1, 42
+		jal DrawPoint #R
+		li $a1, 44
+		jal DrawPoint #R
+		li $a0, 50
+		li $a1, 43
+		jal DrawPoint #R
+		
+		
+		
+		
+		
+		
+		
+##################################################################################################################
+#                                        Toma de datos del teclado:                                              #
+##################################################################################################################	
+SelectMode:
+		lw $t1, 0xFFFF0004		# check to see which key has been pressed
+		beq $t1, 0x00000065, InicioDelJuego # presiona e (minuscula exclusivamente)
+		
+		li $a0, 250	#
+		li $v0, 32	# pause for 250 milisec
+		syscall		#
+		
+		j SelectMode    # Jump back to the top of the wait loop
+		
+		sw $zero, 0xFFFF0000		# clear the button pushed bit
+
+
+##################################################################################################################
+#                                       Inicializacion de variables:                                             #
+##################################################################################################################	
+
+	
+
+InicioDelJuego:
+	li $a0, 1			#Carga 1 en $a0		
+	sw $a0, PrimeraPartida		#Guarda 1 en PrimeraPartida, de esta manera sabemos que ya se dio al menos una partida
+	
+	# Coordenadas iniciales del jugador
+	li $t0, 1
+	sw $t0, halconX
+	li $t0, 31
+	sw $t0, halconY
+	li $t0, 50
+	sw $t0, velocidad
+	li $t0, 63
+	sw $t0, enemigo1X
+	sw $t0, enemigo2X
+	sw $t0, enemigo3X
+	li $t0, 11
+	sw $t0, enemigo1Y
+	li $t0, 38
+	sw $t0, enemigo2Y
+	li $t0, 62
+	sw $t0, enemigo3Y
+
+
+
+##################################################################################################################
+#                                       Dibuja borde izquierdo:                                                  #
+##################################################################################################################	
+	jal ClearBoard   
+	
+DibujarVidas:
+	li $a0, 1
+	li $a1, 1
+	lw $a2, vidascolor
+	li $a3, 4
+	jal DrawVerticalLine #V
+	li $a0, 3
+	jal DrawVerticalLine #V
+	li $a0, 5
+	li $a3, 5
+	jal DrawVerticalLine #I
+	li $a0, 7
+	jal DrawVerticalLine #D
+	li $a0, 9
+	li $a1, 2
+	li $a3, 4
+	jal DrawVerticalLine #D
+	li $a0, 11
+	li $a1, 1
+	li $a3, 5
+	jal DrawVerticalLine #A
+	li $a0, 13
+	jal DrawVerticalLine #A
+	li $a0, 15
+	li $a3, 3
+	jal DrawVerticalLine #S
+	li $a0, 17
+	li $a1, 3
+	li $a3, 5
+	jal DrawVerticalLine #S
+	li $a0, 2
+	li $a1, 5
+	jal DrawPoint #V
+	li $a0, 8
+	li $a1, 1
+	jal DrawPoint #D
+	li $a1, 5
+	jal DrawPoint #D
+	li $a0, 12
+	li $a1, 1
+	jal DrawPoint #A
+	li $a1, 3
+	jal DrawPoint #A
+	li $a0, 15
+	li $a1, 5
+	jal DrawPoint #S
+	li $a0, 16
+	li $a1, 1
+	jal DrawPoint #S
+	li $a1, 3
+	jal DrawPoint #S
+	li $a1, 5
+	jal DrawPoint #S
+	li $a0, 17
+	li $a1, 1
+	jal DrawPoint #S
+	li $a0, 19
+	li $a1, 2
+	jal DrawPoint #:
+	li $a1, 4
+	jal DrawPoint #:
+	
+	
+	#Cuando tiene 3 vidas, "vidas" tiene un valor de 0, cuando tiene 2 vidas "vidas" tiene un valor de 1, etc
+	lw $a0, vidas
+	beq $a0, 0, TresVidas
+	beq $a0, 1, DosVidas
+	beq $a0, 2, UnaVida
+	beq $a0, 3, CeroVidas
+
+TresVidas:  #dibuja el numero 3:  
+	
+	li $a0, 23
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 21
+	li $a1, 1
+	jal DrawPoint 
+	li $a1, 3
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint  
+	li $a0, 22
+	li $a1, 1
+	jal DrawPoint 	
+	li $a1, 3
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint 
+	j BordeIzquierdo   #Salta a BordeIzquierdo para no dibujar el siguiente número
+	
+DosVidas:
+	#colorea en negro los espacios donde va el número, esto para borrar el numero anterior
+	li $a0, 21
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 22
+	jal DrawVerticalLine 
+	li $a0, 23
+	jal DrawVerticalLine 
+	#dibuja el numero 2:
+	lw $a2, colorBlanco
+	li $a0, 21
+	li $a1, 1
+	jal DrawPoint 
+	li $a1, 3
+	jal DrawPoint
+	li $a1, 4
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint  
+	li $a0, 22
+	li $a1, 1
+	jal DrawPoint 	
+	li $a1, 3
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint
+	li $a0, 23
+	li $a1, 1
+	jal DrawPoint 	
+	li $a1, 2
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint
+	j BordeIzquierdo   #Salta a BordeIzquierdo para no dibujar el siguiente número
+
+UnaVida:
+	#colorea en negro los espacios donde va el número, esto para borrar el numero anterior
+	li $a0, 21
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 22
+	jal DrawVerticalLine 
+	li $a0, 23
+	jal DrawVerticalLine 
+	#dibuja el numero 1:
+	li $a0, 22
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 21
+	li $a1, 2
+	jal DrawPoint 
+	li $a1, 5
+	jal DrawPoint
+	li $a0, 23
+	li $a1, 5
+	jal DrawPoint 	
+	j BordeIzquierdo #Salta a BordeIzquierdo para no dibujar el siguiente número
+
+CeroVidas:
+	#colorea en negro los espacios donde va el número, esto para borrar el numero anterior
+	li $a0, 21
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 22
+	jal DrawVerticalLine 
+	li $a0, 23
+	jal DrawVerticalLine 
+	#dibuja el numero 0:
+	li $a0, 21
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 23
+	jal DrawVerticalLine 
+	li $a0, 22
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint 
+		
+BordeIzquierdo:
+	li $a0, 0		# Coordenada inicial en X
+	li $a1, 10		# Coordenada inicial en Y
+	li $a3, 63		# Coordenada final en Y
+	lw $a2, barraColor	# Color morado
+	jal DrawVerticalLine	# Dibuja linea vertical izquierda
+	
+BordeArriba:
+	li $a0, 0		# Coordenada inicial en X
+	li $a1, 10		# Coordenada inicial en Y
+	li $a3, 63		# Coordenada final en X
+	lw $a2, barraColor	# Color morado
+	jal DrawHorizontalLine	# Dibuja linea vertical izquierda
+	
+BordeAbajo:
+	li $a0, 0		# Coordenada inicial en X
+	li $a1, 63		# Coordenada inicial en Y
+	li $a3, 63		# Coordenada final en X
+	lw $a2, barraColor	# Color morado
+	jal DrawHorizontalLine	# Dibuja linea vertical izquierda
+
+DibujarScore:  #dibuja la palabra "SCORE":
+	#Dibuja S:
+	li $a0, 34  
+	li $a1, 1
+	lw $a2, ScoreColor
+	li $a3, 3
+	jal DrawVerticalLine	#S
+	li $a0, 36
+	li $a1, 3
+	li $a3, 5
+	jal DrawVerticalLine    #S
+	li $a0, 34
+	li $a1, 5
+	jal DrawPoint		#S  
+	li $a0, 35
+	jal DrawPoint		#S
+	li $a1, 3
+	jal DrawPoint    	#S
+	li $a1, 1
+	jal DrawPoint 		#S
+	li $a0, 36
+	jal DrawPoint 		#S
+	#Dibuja C:
+	li $a0, 38
+	li $a1, 1
+	li $a3, 5
+	jal DrawVerticalLine  	#C
+	li $a0, 39
+	li $a1, 1
+	jal DrawPoint		#C  
+	li $a1, 5
+	jal DrawPoint		#C  
+	li $a0, 40
+	jal DrawPoint		#C  
+	li $a1, 1
+	jal DrawPoint		#C 
+	#Dibuja O:
+	li $a0, 42
+	li $a1, 1
+	li $a3, 5
+	jal DrawVerticalLine  	#O
+	li $a0, 44
+	jal DrawVerticalLine  	#O
+	li $a0, 43
+	li $a1, 1
+	jal DrawPoint		#O
+	li $a1, 5
+	jal DrawPoint		#O
+	#Dibuja R:
+	li $a0, 46
+	li $a1, 1
+	li $a3, 5
+	jal DrawVerticalLine  	#R
+	li $a0, 47
+	li $a1, 1
+	jal DrawPoint		#R
+	li $a1, 3
+	jal DrawPoint		#R
+	li $a0, 48
+	li $a1, 2
+	jal DrawPoint		#R
+	li $a1, 4
+	jal DrawPoint		#R
+	li $a1, 5
+	jal DrawPoint		#R
+	#Dibuja E:
+	li $a0, 50
+	li $a1, 1
+	li $a3, 5
+	jal DrawVerticalLine  	#E
+	li $a0, 51
+	li $a1, 1
+	jal DrawPoint		#E
+	li $a1, 3
+	jal DrawPoint		#E
+	li $a1, 5
+	jal DrawPoint		#E
+	li $a0, 52
+	li $a1, 1
+	jal DrawPoint		#E
+	li $a1, 3
+	jal DrawPoint		#E
+	li $a1, 5
+	jal DrawPoint		#E
+	#Dibuja ":" :
+	li $a0, 54
+	li $a1, 2
+	jal DrawPoint		#:
+	li $a1, 4
+	jal DrawPoint		#:
+
+	
+	
+	
+	
+	
+##################################################################################################################
+#                           Dibuja la posicion inicial  de la nave:                                              #
+##################################################################################################################	
+
+	# Dibuja nave
+	li $a0, 1
+	lw $a0, halconX		# Carga en a0 la coordenada X de jugador
+	lw $a1, halconY 	# Carga en a0 la coordenada Y de jugador
+	jal ObtenerCoordenadas
+	move $a0, $v0		# Copia coordenada a a0, ya que estan guardadas en v0
+	lw $a1, halconColor	# Almacena el color del jugador
+	jal DibujarPixel		# Dibuja el color en el pixel deseado
+
+##################################################################################################################
+#                           Dibuja la posicion inicial  de los enemigos:                                         #
+##################################################################################################################
+	
+	# Dibuja enemigo 1
+	li $a0, 1
+	lw $a0, enemigo1X		# Carga en a0 la coordenada X de jugador
+	lw $a1, enemigo1Y		# Carga en a0 la coordenada Y de jugador
+	jal ObtenerCoordenadas
+	move $a0, $v0		# Copia coordenada a a0, ya que estan guardadas en v0
+	lw $a1, enemigoColor	# Almacena el color del enemigo 1
+	jal DibujarPixel		# Dibuja el color en el pixel deseado
+	
+	# Dibuja enemigo 2
+	li $a0, 1
+	lw $a0, enemigo2X		# Carga en a0 la coordenada X de jugador
+	lw $a1, enemigo2Y		# Carga en a0 la coordenada Y de jugador
+	jal ObtenerCoordenadas
+	move $a0, $v0		# Copia coordenada a a0, ya que estan guardadas en v0
+	lw $a1, enemigoColor	# Almacena el color del enemigo 2
+	jal DibujarPixel		# Dibuja el color en el pixel deseado
+	
+	# Dibuja enemigo 3
+	li $a0, 1
+	lw $a0, enemigo3X		# Carga en a0 la coordenada X de jugador
+	lw $a1, enemigo3Y		# Carga en a0 la coordenada Y de jugador
+	jal ObtenerCoordenadas
+	move $a0, $v0		# Copia coordenada a a0, ya que estan guardadas en v0
+	lw $a1, enemigoColor	# Almacena el color del enemigo 3
+	jal DibujarPixel		# Dibuja el color en el pixel deseado
+
+##################################################################################################################
+#                           Dibuja movimiento de nave segun teclas:                                              #
+##################################################################################################################	
+
+NuevaTecla:
+
+	lw $a0, velocidad
+	jal Pausa
+	
+	# Nueva entrada de teclado
+	
+	li $t0, 0xffff0000	# Verifica una nueva entrada de teclado
+	lw $t1, ($t0)
+	andi $t1, $t1, 0x0001		# Coloca el valor de $t0 en una AND
+	
+	beqz  $t1, NuevaDireccion	# Si no hay nueva entrada, dibuja en la misma direccion
+	
+	lw $a1, 4($t0)			# Genera la nueva posicion en el eje Y	
+	sw $a1, direccion		# Se almacena la direccion anterior que esta en a1
+	lw $t7, direccion		# Se lee la siguiente direccion y se guarda en t7
+	
+	
+	# Actualizar posicion de jugador
+
+NuevaDireccion:
+	beq $t7, 119, DibujaArriba  #w	
+	beq  $t7, 115, DibujaAbajo  #s
+	beq $t7, 104, Disparo          #Dispara cuando presiona "h"
+	jal movEnemigo
+					
+	
+movEnemigo:
+	
+	
+	#Score:
+	
+	#9x:
+	lw $a0, Score			#Carga el valor de Score en $a0
+	sw $a0, ScoreInicial		#guarda en valor de Score en ScoreInicial
+	blt $a0, 90, MenorQueNoventa	#hace branch si en menor que noventa
+	addi $a0, $a0, -90		#Le resta 90 a 9x, la resta da como resultado la unidad
+	sw $a0, Score			#Guarda la unidad en Score
+	j NueveDecena			#Salta a NueveDecena y Dibuja un 9 en la decena
+	MenorQueNoventa:
+	#8x:
+	lw $a0, Score
+	blt $a0, 80, MenorQueOchenta
+	addi $a0, $a0, -80		#Le resta 80 a 8x, la resta da como resultado la unidad
+	sw $a0, Score			#Guarda la unidad en Score
+	j OchoDecena
+	MenorQueOchenta:
+	#7x:
+	lw $a0, Score
+	blt $a0, 70, MenorQueSetenta
+	addi $a0, $a0, -70		#Le resta 70 a 7x, la resta da como resultado la unidad
+	sw $a0, Score			#Guarda la unidad en Score
+	j SieteDecena
+	MenorQueSetenta:
+	#6x:
+	lw $a0, Score
+	blt $a0, 60, MenorQueSesenta
+	addi $a0, $a0, -60		#Le resta 60 a 6x, la resta da como resultado la unidad
+	sw $a0, Score			#Guarda la unidad en Score
+	j SeisDecena
+	MenorQueSesenta:
+	#5x:
+	lw $a0, Score
+	blt $a0, 50, MenorQueCincuenta
+	addi $a0, $a0, -50		#Le resta 50 a 5x, la resta da como resultado la unidad
+	sw $a0, Score			#Guarda la unidad en Score
+	j CincoDecena
+	MenorQueCincuenta:
+	#4x:
+	lw $a0, Score
+	blt $a0, 40, MenorQueCuarenta
+	addi $a0, $a0, -40		#Le resta 40 a 4x, la resta da como resultado la unidad
+	sw $a0, Score			#Guarda la unidad en Score
+	j CuatroDecena
+	MenorQueCuarenta:
+	#3x:
+	lw $a0, Score
+	blt $a0, 30, MenorQueTreinta
+	addi $a0, $a0, -30		#Le resta 30 a 3x, la resta da como resultado la unidad
+	sw $a0, Score			#Guarda la unidad en Score
+	j TresDecena
+	MenorQueTreinta:
+	#2x:
+	lw $a0, Score
+	blt $a0, 20, MenorQueVeinte
+	addi $a0, $a0, -20		#Le resta 20 a 2x, la resta da como resultado la unidad
+	sw $a0, Score			#Guarda la unidad en Score
+	j DosDecena
+	MenorQueVeinte:
+	#1x:
+	lw $a0, Score
+	blt $a0, 10, MenorQueDiez
+	addi $a0, $a0, -10		#Le resta 10 a 1x, la resta da como resultado la unidad
+	sw $a0, Score			#Guarda la unidad en Score
+	j UnoDecena
+	MenorQueDiez:
+	#0x:
+	j CeroDecena			#Salta inmediatamente a dibujar un cero de decena porque el valor de score es menor que diez
+	
+
+	DibujarUnidades:		#El valor del Score es menor que diez, por lo tanto va a dibujar las unidades
+	#x9:
+	lw $a0, Score			#Lo mismo que las anteriores...
+	blt $a0, 9, MenorQueNueve
+	j NueveUnidad
+	MenorQueNueve:
+	#x8:
+	lw $a0, Score
+	blt $a0, 8, MenorQueOcho
+	j OchoUnidad
+	MenorQueOcho:
+	#x7:
+	lw $a0, Score
+	blt $a0, 7, MenorQueSiete
+	j SieteUnidad
+	MenorQueSiete:
+	#x6:
+	lw $a0, Score
+	blt $a0, 6, MenorQueSeis
+	j SeisUnidad
+	MenorQueSeis:
+	#x5:
+	lw $a0, Score
+	blt $a0, 5, MenorQueCinco
+	j CincoUnidad
+	MenorQueCinco:
+	#x4:
+	lw $a0, Score
+	blt $a0, 4, MenorQueCuatro
+	j CuatroUnidad
+	MenorQueCuatro:
+	#x3:
+	lw $a0, Score
+	blt $a0, 3, MenorQueTres
+	j TresUnidad
+	MenorQueTres:
+	#x2:
+	lw $a0, Score
+	blt $a0, 2, MenorQueDos
+	j DosUnidad
+	MenorQueDos:
+	#x1:
+	lw $a0, Score
+	blt $a0, 1, MenorQueUno
+	j UnoUnidad
+	MenorQueUno:
+	#x0
+	j CeroUnidad
+	
+	SaltoScore:		
+	
+	lw $a0, ScoreInicial		#Cargo el ScoreInicial
+	sw $a0, Score			#Lo guardo en Score para que vuelva a tener el valor actual
+	
+	# Aca se controla la velocidad de los enemigos (aumenta cada 30seg)
+	
+	lw $a0, seg				#Cantidad de veces que sea ejecutado el ciclo
+	bne $a0, 500, NoCambiarVelocidad	# (500=30 Segundos) Si no a llegado a 500 ciclos salta a la etiqueta y no cambia la velocidad
+	lw $a1, tiempoEnemigos			#Carga tiempoEnemigos en $a1
+	beq $a1, 1, NoCambiarVelocidad		#si el tiempoEnemigos llega a 1 no cambia la velocidad porque como es una resta haría que quede negativa y la cantidad minima es 1
+	addi $a1, $a1, -5			#Resta 5 a la cantidad de TiempoEnemigos
+	sw $zero, seg				#Carga cero en seg reseteando el contador
+	sw $a1, tiempoEnemigos			#guarda el tiempoEnemigos nuevo
+	
+NoCambiarVelocidad:				
+	addi $a0, $a0, 1			#Suma 1 a seg
+	sw $a0, seg				#guarda el nuevo valor de seg
+	lw $a0, velocidadEnemigo		#carga la cantidad de VelocidadEnemigo	
+	addi $a0, $a0, 1			#suma 1
+	sw $a0, velocidadEnemigo		#guarda la nueva velocidadEnemigo
+	lw $a0, velocidadEnemigo		#Carga la nueva velocidadEnemigos
+	lw $a1, tiempoEnemigos			#Carga el TiempoEnemigos
+	bne $a0, $a1, NuevaTecla 		#Cuando el tiempoEnemigos es igual a VelocidadEnemigo dibuja la nueva posición de la nave enemiga
+	sw $zero, velocidadEnemigo
+	# Movimiento del enemigo 1
+	li $a0, 1				
+	lw $a0, enemigo1X	#Carga la posicion en X del enemigo 1
+	lw $a1, enemigo1Y	#Carga la posicion en Y del enemigo 1
+
+	jal ChoqueEnemigo1	#Verifica que no exita algun tipo de colision en el enemigo
+	# Dibuja la nueva posicion y se mueve en Y
+	lw $t0, enemigo1X	#Carga la posicion en X del enemigo 1
+	lw $t1, enemigo1Y	#Carga la posicion en Y del enemigo 1
+	addiu $t0, $t0, -1	#Le suma un -1 (resta) a la posición de X, esto para avancar
+	add $a1, $t1, $zero	# No se mueve en Y, por lo que le suma 0
+	add $a0, $t0, $zero 	# Le suma cero a la posicion en X
+	jal ObtenerCoordenadas	#Realiza el mapeo de coordenadas
+	add $a0, $v0, $zero	# A la coordenada le suma 0 y lo guarda en a0
+	lw $a1, enemigoColor	#Carga el color del enemigo
+	jal DibujarPixel	#Pinta el pixel mapeado con el color requerido
+	sw $t0, enemigo1X
+	
+	# Borrar pixel anterior
+	lw $t0, enemigo1X	#Carga la posicion en X del enemigo 1
+	lw $t1, enemigo1Y	#Carga la posicion en Y del enemigo 1
+	addiu $t0, $t0, 1	#Le suma 1 a la posicion de X
+	add $a1, $t1, $zero	# No se mueve en X, por lo que le suma 0
+	add $a0, $t0, $zero 	# Le suma cero a la posicion en X
+	jal ObtenerCoordenadas	#Mapea las coordenadas dadas
+	add $a0, $v0, $zero	# A la coordenada le suma 0 y lo guarda en a0
+	lw $a1, ColorFondo	# Carga el color del fondo de la pantalla, esto para eliminar el color
+	jal DibujarPixel	# Pinta el pixel mapeado
+	
+	# Movimiento del enemigo 2
+	li $a0, 1
+	lw $a0, enemigo2X
+	lw $a1, enemigo2Y
+
+	jal ChoqueEnemigo2
+	# Dibuja la nueva posicion y se mueve en Y
+	lw $t0, enemigo2X
+	lw $t1, enemigo2Y
+	addiu $t0, $t0, -1
+	add $a1, $t1, $zero	# No se mueve en Y, por lo que le suma 0
+	add $a0, $t0, $zero 	
+	jal ObtenerCoordenadas
+	add $a0, $v0, $zero	# A la coordenada le suma 0 y lo guarda en a0
+	lw $a1, enemigoColor
+	jal DibujarPixel
+	sw $t0, enemigo2X
+	
+	# Borrar pixel anterior
+	lw $t0, enemigo2X
+	lw $t1, enemigo2Y
+	addiu $t0, $t0, 1
+	add $a1, $t1, $zero	# No se mueve en X, por lo que le suma 0
+	add $a0, $t0, $zero 	# Le quita a Y una posicion y lo guarda en a1
+	jal ObtenerCoordenadas
+	add $a0, $v0, $zero	# A la coordenada le suma 0 y lo guarda en a0
+	lw $a1, ColorFondo
+	jal DibujarPixel
+	
+	# Movimiento del enemigo 3
+	li $a0, 1
+	lw $a0, enemigo3X
+	lw $a1, enemigo3Y
+
+	jal ChoqueEnemigo3
+	# Dibuja la nueva posicion y se mueve en Y
+	lw $t0, enemigo3X
+	lw $t1, enemigo3Y
+	addiu $t0, $t0, -1
+	add $a1, $t1, $zero	# No se mueve en Y, por lo que le suma 0
+	add $a0, $t0, $zero 	
+	jal ObtenerCoordenadas
+	add $a0, $v0, $zero	# A la coordenada le suma 0 y lo guarda en a0
+	lw $a1, enemigoColor
+	jal DibujarPixel
+	sw $t0, enemigo3X
+	
+	# Borrar pixel anterior
+	lw $t0, enemigo3X
+	lw $t1, enemigo3Y
+	addiu $t0, $t0, 1
+	add $a1, $t1, $zero	# No se mueve en X, por lo que le suma 0
+	add $a0, $t0, $zero 	# Le quita a Y una posicion y lo guarda en a1
+	jal ObtenerCoordenadas
+	add $a0, $v0, $zero	# A la coordenada le suma 0 y lo guarda en a0
+	lw $a1, ColorFondo
+	jal DibujarPixel
+	
+	j NuevaTecla
+
+Disparo: 
+	
+	lw $a0, InicioDisparo #Cargo InicioDisparo en $a0
+
+	bnez $a0, SaltoDisparo # Si InicioDisparo es igual a cero entonces carga la cordenada en y del jugador
+	#Sonido:
+	li $a0, 61			#Tono		
+	li $a1, 100			#Duración en ms
+	li $a2, 24			#Instrumento (Guitarra)
+	li $a3, 127			#Volumen (máximo)
+	li $v0, 31			#servicio 31, En MARS sirve para emitir sonidos
+	syscall				#emite el sonido
+	
+	lw $a0, InicioDisparo #Cargo InicioDisparo en $a0
+	
+	lw $a1, halconY   #carga la cordenada en y de la nave en $a1, solo ocupamos esto en el momento de disparar, por eso solo debe cargarse en ese momento
+	sw $a1, DisparoY  #guarda la coordenada en y inicial de la nave en DisparoY
+	lw $a3, DisparoY  #carga DisparoY en $a3
+	addi $a0, $a0, 1 #suma 1 a InicioDisparo inicialmente para que no dibuje sobre la nave
+	SaltoDisparo:
+		#borrar Disparo: (si la coordenada en x es mayor que 1)
+		blt $a0, 2, NoBorrar    #Para no borrar la nave empieza borrando en 1
+		sw $a0, InicioDisparo   #guardo el nuevo valor de $a0 en InicioDisparo
+		lw $a0, InicioDisparo	#cargo el nuevo valor de $a0 en InicioDisparo
+		lw $a1, DisparoY	#Carga la posición en y del disparo
+		lw $a2, ColorFondo	#Carga el Color de Fondo para pintar un punto negro en la posición anterior
+		jal DrawPoint #borra el disparo con las coordenadas anteriores
+		NoBorrar:   #si el disparo está en el inicio no borra, ya que borraría la nave
+		addi $a0, $a0, 1 #suma 1 a InicioDisparo, para que no vuelva a cargar la coordenada inicial en y de la nave
+		sw $a0, InicioDisparo  #guardo el nuevo valor de $a0 en InicioDisparo
+		lw $a0, InicioDisparo
+		lw $a1, DisparoY
+		lw $a2, colorBlanco
+		jal DrawPoint #dibuja el disparo con las coordenadas anteriores
+		
+		#Colisión Proyectil 1:
+			
+		lw $a0, enemigo1Y			#Carga la posición en y del enemigo
+		lw $a1, DisparoY			#Carga la posición en y del disparo
+		bne $a0, $a1, NoColisionDisparo1	#Compara la posición en y del enemigo con la del disparo, si son iguales va a pasar a comparar las posiciones en x, si no salta la etiqueta porque no colisiona
+		lw $a0, enemigo1X			#Carga la posición en x del enemigo	
+		lw $a1, InicioDisparo			#carga la posición en x del disparo
+		bne $a0, $a1, NoColisionDisparo1	#compara las posiciones en x, si son iguales va a resetear el disparo y el enemigo
+		lw $a0, InicioDisparo			#carga la posición en x del disparo
+		lw $a1, DisparoY			#carga la posición en y del disparo
+		lw $a2, ColorFondo			#carga la el color del fondo
+		jal DrawPoint 				#borra el disparo En el último punto
+		li $a0, 0				#carga cero en $a0
+		sw $a0, InicioDisparo			#guarda cero en InicioDisparo, haciendo un reset en disparo
+		
+		li $a1, 16  # Aca se coloca el maximo numero.
+   		li $v0, 42  # Genera el numero random por arte de magia
+    		syscall
+    		add $a0, $a0, 12
+    		
+    		sw $a0, enemigo1Y
+		li $a0, 63				#carga 63 en $a0
+		sw $a0, enemigo1X			#guarda 63 en la posición en x del enemigo, de esta manera devuelve al enemigo a la posición inicial en x
+		lw $a0, Score				#Carga Score para sumarle 1
+		addi $a0, $a0, 1			#Le suma 1 a Score porque impactó un enemigo
+		sw $a0, Score				#Guarda el nuevo valor de Score 
+		#Sonido:
+		li $a0, 69			#Tono		
+		li $a1, 100			#Duración en ms
+		li $a2, 5			#Instrumento (Piano)
+		li $a3, 127			#Volumen (máximo)
+		li $v0, 31			#servicio 31, En MARS sirve para emitir sonidos
+		syscall				#emite el sonido
+		
+		NoColisionDisparo1:
+		#Colisión Proyectil 2:
+		lw $a0, enemigo2Y			#Carga la posición en y del enemigo
+		lw $a1, DisparoY			#Carga la posición en y del disparo
+		bne $a0, $a1, NoColisionDisparo2		#Compara la posición en y del enemigo con la del disparo, si son iguales va a pasar a comparar las posiciones en x, si no salta la etiqueta porque no colisiona
+		lw $a0, enemigo2X			#Carga la posición en x del enemigo	
+		lw $a1, InicioDisparo			#carga la posición en x del disparo
+		bne $a0, $a1, NoColisionDisparo2		#compara las posiciones en x, si son iguales va a resetear el disparo y el enemigo
+		lw $a0, InicioDisparo			#carga la posición en x del disparo
+		lw $a1, DisparoY			#carga la posición en y del disparo
+		lw $a2, ColorFondo			#carga la el color del fondo
+		jal DrawPoint 				#borra el disparo En el último punto
+		li $a0, 0				#carga cero en $a0
+		sw $a0, InicioDisparo			#guarda cero en InicioDisparo, haciendo un reset en disparo
+		
+		li $a1, 16  # Aca se coloca el maximo numero.
+   		li $v0, 42  # Genera el numero random por arte de magia
+    		syscall
+    		add $a0, $a0, 29
+    		
+    		sw $a0, enemigo2Y
+		li $a0, 63				#carga 63 en $a0
+		sw $a0, enemigo2X			#guarda 63 en la posición en x del enemigo, de esta manera devuelve al enemigo a la posición inicial en x
+		lw $a0, Score				#Carga Score para sumarle 1
+		addi $a0, $a0, 1			#Le suma 1 a Score porque impactó un enemigo
+		sw $a0, Score				#Guarda el nuevo valor de Score 
+		#Sonido:
+		li $a0, 69			#Tono		
+		li $a1, 100			#Duración en ms
+		li $a2, 5			#Instrumento (Piano)
+		li $a3, 127			#Volumen (máximo)
+		li $v0, 31			#servicio 31, En MARS sirve para emitir sonidos
+		syscall				#emite el sonido
+		
+		NoColisionDisparo2:
+		#Colisión Proyectil 3:
+		lw $a0, enemigo3Y			#Carga la posición en y del enemigo
+		lw $a1, DisparoY			#Carga la posición en y del disparo
+		bne $a0, $a1, NoColisionDisparo3		#Compara la posición en y del enemigo con la del disparo, si son iguales va a pasar a comparar las posiciones en x, si no salta la etiqueta porque no colisiona
+		lw $a0, enemigo3X			#Carga la posición en x del enemigo	
+		lw $a1, InicioDisparo			#carga la posición en x del disparo
+		bne $a0, $a1, NoColisionDisparo3		#compara las posiciones en x, si son iguales va a resetear el disparo y el enemigo
+		lw $a0, InicioDisparo			#carga la posición en x del disparo
+		lw $a1, DisparoY			#carga la posición en y del disparo
+		lw $a2, ColorFondo			#carga la el color del fondo
+		jal DrawPoint 				#borra el disparo En el último punto
+		li $a0, 0				#carga cero en $a0
+		sw $a0, InicioDisparo			#guarda cero en InicioDisparo, haciendo un reset en disparo
+		
+		li $a1, 16  # Aca se coloca el maximo numero.
+   		li $v0, 42  # Genera el numero random por arte de magia
+    		syscall
+    		add $a0, $a0, 46
+    		
+    		sw $a0, enemigo3Y
+		li $a0, 63				#carga 63 en $a0
+		sw $a0, enemigo3X			#guarda 63 en la posición en x del enemigo, de esta manera devuelve al enemigo a la posición inicial en x
+		lw $a0, Score				#Carga Score para sumarle 1
+		addi $a0, $a0, 1			#Le suma 1 a Score porque impactó un enemigo
+		sw $a0, Score				#Guarda el nuevo valor de Score 
+		#Sonido:
+		li $a0, 69			#Tono		
+		li $a1, 100			#Duración en ms
+		li $a2, 5			#Instrumento (Piano)
+		li $a3, 127			#Volumen (máximo)
+		li $v0, 31			#servicio 31, En MARS sirve para emitir sonidos
+		syscall				#emite el sonido
+		
+		NoColisionDisparo3:
+		lw $a0, InicioDisparo
+		bne $a0, 63, NoReiniciey #si llega al final de la pantalla reinicia el disparo
+		lw $a0, InicioDisparo
+		lw $a1, DisparoY
+		lw $a2, ColorFondo
+		jal DrawPoint #borra el disparo En el último punto
+		li $a0, 0
+		sw $a0, InicioDisparo
+		
+		NoReiniciey:   
+		
+		
+	
+	jal movEnemigo #jump and link para que el movimiento del enemigo no se detenga		
+	
+DibujaArriba:
+	li $a0, 1
+	lw $a0, halconX
+	lw $a1, halconY
+	lw $a2, direccion
+	jal Choque
+	# Dibuja la nueva posicion y se mueve en Y
+	lw $t0, halconX
+	lw $t1, halconY
+	addiu $t1, $t1, -1
+	add $a0, $t0, $zero	# No se mueve en X, por lo que le suma 0
+	add $a1, $t1, $zero 	# Le quita a Y una posicion y lo guarda en a1
+	jal ObtenerCoordenadas
+	add $a0, $v0, $zero	# A la coordenada le suma 0 y lo guarda en a0
+	lw $a1, halconColor
+	jal DibujarPixel
+	sw $t1, halconY
+	
+	# Borrar pixel anterior
+	lw $t0, halconX
+	lw $t1, halconY
+	addiu $t1, $t1, 1
+	add $a0, $t0, $zero	# No se mueve en X, por lo que le suma 0
+	add $a1, $t1, $zero 	# Le quita a Y una posicion y lo guarda en a1
+	jal ObtenerCoordenadas
+	add $a0, $v0, $zero	# A la coordenada le suma 0 y lo guarda en a0
+	lw $a1, ColorFondo
+	jal DibujarPixel
+	
+	lw $a0, InicioDisparo #Cargo InicioDisparo en $a0
+	bnez $a0, SaltoDisparo # Si InicioDisparo es diferente de cero hace branch a Salto Disparo
+		
+	j movEnemigo
+
+DibujaAbajo:
+	lw $a0, halconX
+	lw $a1, halconY
+	lw $a2, direccion
+	
+	jal Choque
+	# Dibuja la nueva posicion y se mueve en Y
+	lw $t0, halconX
+	lw $t1, halconY
+	addiu $t1, $t1, 1
+	add $a0, $t0, $zero	# No se mueve en X, por lo que le suma 0
+	add $a1, $t1, $zero 	# Le quita a Y una posicion y lo guarda en a1
+	jal ObtenerCoordenadas
+	add $a0, $v0, $zero	# A la coordenada le suma 0 y lo guarda en a0
+	lw $a1, halconColor
+	jal DibujarPixel
+	sw $t1, halconY
+	
+	# Borrar pixel anterior
+	lw $t0, halconX
+	lw $t1, halconY
+	addiu $t1, $t1, -1
+	add $a0, $t0, $zero	# No se mueve en X, por lo que le suma 0
+	add $a1, $t1, $zero 	# Le quita a Y una posicion y lo guarda en a1
+	jal ObtenerCoordenadas
+	add $a0, $v0, $zero	# A la coordenada le suma 0 y lo guarda en a0
+	lw $a1, ColorFondo
+	jal DibujarPixel
+	lw $a0, InicioDisparo #Cargo InicioDisparo en $a0
+	bnez $a0, SaltoDisparo # Si InicioDisparo es diferente de cero hace branch a Salto Disparo
+	
+	j movEnemigo
+
+
+##################################################################################################################
+#                                  Obtener coordenadas para la direccion del jugador                             #
+##################################################################################################################	
+
+ObtenerCoordenadas:
+	lw $v0, anchoPantalla	# Obtiene el ancho de la pantalla
+	mul $v0, $v0, $a1	# Multiplica el ancho por la posicion en Y
+	add $v0, $v0, $a0	# Le suma al resultado anterior la posicion en X
+	mul $v0, $v0, 4		# Multiplica por 4 para obtener direccion
+	add $v0, $v0, $gp	# Suma un puntero de la pantalla en la coordenada
+	jr $ra			# 
+		
+##################################################################################################################
+#                                   Dibuja pixel:                                                                #
+##################################################################################################################	
+
+DibujarPixel:
+	sw $a1, ($a0)	# Llena la coordenada con el valor especifico
+	jr $ra
+
+
+##################################################################################################################
+#                                    Limpiar pantalla:                                                           #
+##################################################################################################################						
+ClearBoard:
+		lw $t0, ColorFondo #Guarda el color de fondo en $t0
+		li $t1, 16384 # El numero de pixeles en el display (512/8)*(512/8)*(4) 
+	StartCLoop:
+		subi $t1, $t1, 4
+		addu $t2, $t1, $gp
+		sw $t0, ($t2)
+		beqz $t1, EndCLoop
+		j StartCLoop
+	EndCLoop:
+		jr $ra
+	
+# $a0 the x starting coordinate
+# $a1 the y coordinate
+# $a2 the color
+# $a3 the x ending coordinate
+DrawHorizontalLine:
+		
+		addi $sp, $sp, -4
+   		sw $ra, 0($sp)
+		
+		sub $t9, $a3, $a0
+		move $t1, $a0
+		
+	HorizontalLoop:
+		
+		add $a0, $t1, $t9
+		jal DrawPoint
+		addi $t9, $t9, -1
+		
+		bge $t9, 0, HorizontalLoop
+		
+		lw $ra, 0($sp)		# put return back
+   		addi $sp, $sp, 4
+
+		jr $ra
+		
+# $a0 the x coordinate
+# $a1 the y starting coordinate
+# $a2 the color
+# $a3 the y ending coordinate
+DrawVerticalLine:
+
+		addi $sp, $sp, -4
+   		sw $ra, 0($sp)
+		
+		sub $t9, $a3, $a1
+		move $t1, $a1
+		
+	VerticalLoop:
+		
+		add $a1, $t1, $t9
+		jal DrawPoint
+		addi $t9, $t9, -1
+		
+		bge $t9, 0, VerticalLoop
+		
+		lw $ra, 0($sp)		# put return back
+   		addi $sp, $sp, 4
+   		
+		jr $ra		
+		
+# $a0 contains x position, $a1 contains y position, $a2 contains the color	
+DrawPoint:
+		sll $t0, $a1, 6   # multiply y-coordinate by 64 (length of the field)
+		addu $v0, $a0, $t0
+		sll $v0, $v0, 2
+		addu $v0, $v0, $gp
+		sw $a2, ($v0)		# draw the color to the location
+		
+		jr $ra
+
+##################################################################################################################
+#                                                      Pausa:                                                    #
+##################################################################################################################	
+
+Pausa:
+	#li $a0, 100	#Acá se coloca el tiempo para el movimiento del enemigo y jugador
+	li $v0, 32 #syscall value for sleep
+	syscall
+	jr $ra
+		
+##################################################################################################################
+#                                                    Colision de jugador:                                        #
+##################################################################################################################	
+
+Choque:
+	# Guardar coordenadas del jugador
+	add $s3, $a0, $zero
+	add $s4, $a1, $zero
+	
+	# Guardar direccion de retorno
+	sw $ra, 0($sp)
+	
+	beq $a2, 119, VerificarArriba
+	beq $a2, 115, VerificarAbajo
+	j ChoqueListo
+
+VerificarArriba:
+	addiu $a1, $a1, -1
+	jal ObtenerCoordenadas
+	
+	# Obtener color del fondo
+	lw $t1, 0($v0)
+	lw $t3, barraColor
+	beq $t1, $t3, movEnemigo # Compara el color del jugador con el color de las paredes de arriba
+	j ChoqueListo
+
+VerificarAbajo:
+	addiu $a1, $a1, 1
+	jal ObtenerCoordenadas
+	
+	# Obtener color del fondo
+	lw $t1, 0($v0)
+	lw $t3, barraColor
+	beq $t1, $t3, movEnemigo # Compara el color del jugador con el color de las paredes de abajo
+	j ChoqueListo
+
+ChoqueListo:
+	lw $ra, 0($sp) # Devuelve la direccion del stack al inicio
+	jr $ra
+ChoqueEnemigo1:
+	add $s3, $a0, $zero	# Posicion en X
+	add $s4, $a1, $zero	# Posicion en Y
+	
+	# Guardar direccion de retorno
+	sw $ra, 0($sp)
+	
+	addiu $a0, $a0, -1
+	jal ObtenerCoordenadas
+	
+	# Obtener color del fondo
+	lw $t1, 0($v0)
+	lw $t3, barraColor
+	beq $t1, $t3, Exit1 # Compara el color del enemigo con el color de las pared de la izquierda (choque)
+	lw $t3, halconColor
+	beq $t1, $t3, Exit1
+	lw $ra, 0($sp)
+	jr $ra
+
+
+ChoqueEnemigo2:
+	add $s3, $a0, $zero	# Posicion en X
+	add $s4, $a1, $zero	# Posicion en Y
+	
+	# Guardar direccion de retorno
+	sw $ra, 0($sp)
+	
+	addiu $a0, $a0, -1
+	jal ObtenerCoordenadas
+	
+	# Obtener color del fondo
+	lw $t1, 0($v0)
+	lw $t3, barraColor
+	beq $t1, $t3, Exit2 # Compara el color del enemigo con el color de las pared de la izquierda (choque)
+	lw $t3, halconColor
+	beq $t1, $t3, Exit2
+	lw $ra, 0($sp)
+	jr $ra
+
+ChoqueEnemigo3:
+	add $s3, $a0, $zero	# Posicion en X
+	add $s4, $a1, $zero	# Posicion en Y
+	
+	# Guardar direccion de retorno
+	sw $ra, 0($sp)
+	
+	addiu $a0, $a0, -1
+	jal ObtenerCoordenadas
+	
+	# Obtener color del fondo
+	lw $t1, 0($v0)
+	lw $t3, barraColor
+	beq $t1, $t3, Exit3 # Compara el color del enemigo con el color de las pared de la izquierda (choque)
+	lw $t3, halconColor
+	beq $t1, $t3, Exit3
+	lw $ra, 0($sp)
+	jr $ra
+
+Exit1:
+	#Sonido(Suena dos veces):
+	li $a0, 61			#Tono		
+	li $a1, 80			#Duración en ms
+	li $a2, 115			#Instrumento (Percusión)
+	li $a3, 127			#Volumen (máximo)
+	li $v0, 31			#servicio 31, En MARS sirve para emitir sonidos
+	syscall				#emite el sonido
+	
+	
+	# Desaparece enemigo 1
+	lw $t0, enemigo1X
+	addiu $t0, $t0, -1
+	sw $t0, enemigo1X
+	
+	# Borrar pixel anterior
+	lw $t0, enemigo1X
+	lw $t1, enemigo1Y
+	addiu $t0, $t0, 1
+	add $a1, $t1, $zero	# No se mueve en X, por lo que le suma 0
+	add $a0, $t0, $zero 	# Le quita a Y una posicion y lo guarda en a1
+	jal ObtenerCoordenadas
+	add $a0, $v0, $zero	# A la coordenada le suma 0 y lo guarda en a0
+	lw $a1, ColorFondo
+	jal DibujarPixel
+	
+	# Cuenta las vidas
+	lw $a0, vidas
+	addi $a0, $a0, 1
+	sw $a0, vidas
+	bne $a0, 4, NuevoEnemigo1	#Lo que hace es regresar al enemigo a sus condiciones inciales
+	j NewGame
+Exit2:
+	#Sonido(Suena dos veces):
+	li $a0, 61			#Tono		
+	li $a1, 80			#Duración en ms
+	li $a2, 115			#Instrumento (Percusión)
+	li $a3, 127			#Volumen (máximo)
+	li $v0, 31			#servicio 31, En MARS sirve para emitir sonidos
+	syscall				#emite el sonido
+	
+	
+	
+	# Desaparece enemigo 2
+	lw $t0, enemigo2X
+	addiu $t0, $t0, -1
+	sw $t0, enemigo2X
+	
+	# Borrar pixel anterior
+	lw $t0, enemigo2X
+	lw $t1, enemigo2Y
+	addiu $t0, $t0, 1
+	add $a1, $t1, $zero	# No se mueve en X, por lo que le suma 0
+	add $a0, $t0, $zero 	# Le quita a Y una posicion y lo guarda en a1
+	jal ObtenerCoordenadas
+	add $a0, $v0, $zero	# A la coordenada le suma 0 y lo guarda en a0
+	lw $a1, ColorFondo
+	jal DibujarPixel
+	
+	# Cuenta las vidas
+	lw $a0, vidas
+	addi $a0, $a0, 1
+	sw $a0, vidas
+	bne $a0, 4, NuevoEnemigo2	#Lo que hace es regresar al enemigo a sus condiciones inciales
+	j NewGame
+Exit3:
+	
+	#Sonido(Suena dos veces):
+	li $a0, 61			#Tono		
+	li $a1, 80			#Duración en ms
+	li $a2, 115			#Instrumento (Percusión)
+	li $a3, 127			#Volumen (máximo)
+	li $v0, 31			#servicio 31, En MARS sirve para emitir sonidos
+	syscall				#emite el sonido
+	
+
+	# Desaparece enemigo 3
+	lw $t0, enemigo3X
+	addiu $t0, $t0, -1
+	sw $t0, enemigo3X
+	
+	# Borrar pixel anterior
+	lw $t0, enemigo3X
+	lw $t1, enemigo3Y
+	addiu $t0, $t0, 1
+	add $a1, $t1, $zero	# No se mueve en X, por lo que le suma 0
+	add $a0, $t0, $zero 	# Le quita a Y una posicion y lo guarda en a1
+	jal ObtenerCoordenadas
+	add $a0, $v0, $zero	# A la coordenada le suma 0 y lo guarda en a0
+	lw $a1, ColorFondo
+	jal DibujarPixel
+
+	# Cuenta las vidas
+	lw $a0, vidas
+	addi $a0, $a0, 1
+	sw $a0, vidas
+	bne $a0, 4, NuevoEnemigo3	#Lo que hace es regresar al enemigo a sus condiciones inciales
+	j NewGame
+
+NuevoEnemigo1:
+	# Devuelve al enemigo 1 a su posicion inicial
+	li $t0, 63
+	sw $t0, enemigo1X
+	li $t0, 11
+	sw $t0, enemigo1Y
+	# Dibuja la posición inicial del enemigo
+	lw $a0, enemigo1X		# Carga en a0 la coordenada X de jugador
+	lw $a1, enemigo1Y		# Carga en a0 la coordenada Y de jugador
+	jal ObtenerCoordenadas
+	move $a0, $v0		# Copia coordenada a a0, ya que estan guardadas en v0
+	lw $a1, enemigoColor	# Almacena el color del jugador
+	jal DibujarPixel		# Dibuja el color en el pixel deseado
+	j DibujarVidas
+NuevoEnemigo2:
+	# Devuelve al enemigo 2 a su posicion inicial
+	li $t0, 63
+	sw $t0, enemigo2X
+	li $t0, 38
+	sw $t0, enemigo2Y
+	# Dibuja la posición inicial del enemigo
+	lw $a0, enemigo2X		# Carga en a0 la coordenada X de jugador
+	lw $a1, enemigo2Y		# Carga en a0 la coordenada Y de jugador
+	jal ObtenerCoordenadas
+	move $a0, $v0		# Copia coordenada a a0, ya que estan guardadas en v0
+	lw $a1, enemigoColor	# Almacena el color del jugador
+	jal DibujarPixel		# Dibuja el color en el pixel deseado
+	j DibujarVidas
+NuevoEnemigo3:
+	# Devuelve al enemigo 3 a su posicion inicial
+	li $t0, 63
+	sw $t0, enemigo3X
+	li $t0, 62
+	sw $t0, enemigo3Y
+	# Dibuja la posición inicial del enemigo
+	lw $a0, enemigo3X		# Carga en a0 la coordenada X de jugador
+	lw $a1, enemigo3Y		# Carga en a0 la coordenada Y de jugador
+	jal ObtenerCoordenadas
+	move $a0, $v0		# Copia coordenada a a0, ya que estan guardadas en v0
+	lw $a1, enemigoColor	# Almacena el color del jugador
+	jal DibujarPixel		# Dibuja el color en el pixel deseado
+	j DibujarVidas
+
+
+
+#NUMEROS PARA DECENAS Y UNIDADES:
+
+
+#Decenas:
+#Decenaes:
+
+CeroDecena:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 56
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 57
+	jal DrawVerticalLine 
+	li $a0, 58
+	jal DrawVerticalLine 
+	#dibuja el numero 0:
+	li $a0, 56
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 58
+	jal DrawVerticalLine 
+	li $a0, 57
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint 
+	j DibujarUnidades
+UnoDecena:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 56
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 57
+	jal DrawVerticalLine 
+	li $a0, 58
+	jal DrawVerticalLine 
+	#dibuja el numero 1:
+	li $a0, 57
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine  
+	li $a0, 56
+	li $a1, 2
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint
+	li $a0, 58
+	jal DrawPoint 
+	j DibujarUnidades
+DosDecena:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 56
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 57
+	jal DrawVerticalLine 
+	li $a0, 58
+	jal DrawVerticalLine 
+	#dibuja el numero 2:
+	li $a0, 56
+	li $a1, 3
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine  
+	li $a1, 1
+	jal DrawPoint
+	li $a0, 57
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint
+	li $a0, 58
+	jal DrawPoint 
+	li $a1, 1
+	li $a3, 3
+	jal DrawVerticalLine 
+	j DibujarUnidades
+TresDecena:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 56
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 57
+	jal DrawVerticalLine 
+	li $a0, 58
+	jal DrawVerticalLine 
+	#dibuja el numero 3:
+	li $a0, 58
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine
+	li $a0, 56  
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint
+	li $a0, 57  
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint 
+	li $a1, 1
+	jal DrawPoint 
+	j DibujarUnidades
+CuatroDecena:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 56
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 57
+	jal DrawVerticalLine 
+	li $a0, 58
+	jal DrawVerticalLine 
+	#dibuja el numero 4:
+	li $a0, 58
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine
+	li $a0, 56  
+	li $a1, 1
+	li $a3, 3
+	jal DrawVerticalLine
+	li $a0, 57  
+	li $a1, 3
+	jal DrawPoint
+	j DibujarUnidades
+CincoDecena:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 56
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 57
+	jal DrawVerticalLine 
+	li $a0, 58
+	jal DrawVerticalLine 
+	#dibuja el numero 5:
+	li $a0, 56
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 3
+	jal DrawVerticalLine
+	li $a1, 5
+	jal DrawPoint
+	li $a0, 57  
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint
+	li $a0, 58
+	li $a1, 1  
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint 
+	li $a1, 4
+	jal DrawPoint 
+	li $a1, 5
+	jal DrawPoint
+	j DibujarUnidades
+SeisDecena:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 56
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 57
+	jal DrawVerticalLine 
+	li $a0, 58
+	jal DrawVerticalLine 
+	#dibuja el numero 6:
+	li $a0, 56
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine
+	li $a0, 57  
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint
+	li $a0, 58
+	li $a1, 1  
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint 
+	li $a1, 4
+	jal DrawPoint 
+	li $a1, 5
+	jal DrawPoint
+	j DibujarUnidades
+SieteDecena:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 56
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 57
+	jal DrawVerticalLine 
+	li $a0, 58
+	jal DrawVerticalLine 
+	#dibuja el numero 7:
+	li $a0, 58
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine
+	li $a0, 56  
+	li $a1, 1
+	jal DrawPoint
+	li $a0, 57  
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint  
+	j DibujarUnidades
+OchoDecena:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 56
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 57
+	jal DrawVerticalLine 
+	li $a0, 58
+	jal DrawVerticalLine 
+	#dibuja el numero 8:
+	li $a0, 56
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 58
+	jal DrawVerticalLine 
+	li $a0, 57
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint 
+	li $a1, 5
+	jal DrawPoint 
+	j DibujarUnidades
+NueveDecena:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 56
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 57
+	jal DrawVerticalLine 
+	li $a0, 58
+	jal DrawVerticalLine 
+	#dibuja el numero 9:
+	li $a0, 58
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine
+	li $a0, 56  
+	li $a1, 1
+	li $a3, 3
+	jal DrawVerticalLine
+	li $a0, 57  
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint
+	j DibujarUnidades
+	
+#Unidades:
+
+CeroUnidad:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 60
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 61
+	jal DrawVerticalLine 
+	li $a0, 62
+	jal DrawVerticalLine 
+	#dibuja el numero 0:
+	li $a0, 60
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 62
+	jal DrawVerticalLine 
+	li $a0, 61
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint 
+	j SaltoScore	
+UnoUnidad:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 60
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 61
+	jal DrawVerticalLine 
+	li $a0, 62
+	jal DrawVerticalLine 
+	#dibuja el numero 1:
+	li $a0, 61
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine  
+	li $a0, 60
+	li $a1, 2
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint
+	li $a0, 62
+	jal DrawPoint 
+	j SaltoScore	
+DosUnidad:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 60
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 61
+	jal DrawVerticalLine 
+	li $a0, 62
+	jal DrawVerticalLine 
+	#dibuja el numero 2:
+	li $a0, 60
+	li $a1, 3
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine  
+	li $a1, 1
+	jal DrawPoint
+	li $a0, 61
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint
+	li $a0, 62
+	jal DrawPoint 
+	li $a1, 1
+	li $a3, 3
+	jal DrawVerticalLine 
+	j SaltoScore	
+TresUnidad:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 60
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 61
+	jal DrawVerticalLine 
+	li $a0, 62
+	jal DrawVerticalLine 
+	#dibuja el numero 3:
+	li $a0, 62
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine
+	li $a0, 60  
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint
+	li $a0, 61  
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint 
+	li $a1, 1
+	jal DrawPoint 
+	j SaltoScore	
+CuatroUnidad:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 60
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 61
+	jal DrawVerticalLine 
+	li $a0, 62
+	jal DrawVerticalLine 
+	#dibuja el numero 4:
+	li $a0, 62
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine
+	li $a0, 60  
+	li $a1, 1
+	li $a3, 3
+	jal DrawVerticalLine
+	li $a0, 61  
+	li $a1, 3
+	jal DrawPoint
+	j SaltoScore	
+CincoUnidad:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 60
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 61
+	jal DrawVerticalLine 
+	li $a0, 62
+	jal DrawVerticalLine 
+	#dibuja el numero 5:
+	li $a0, 60
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 3
+	jal DrawVerticalLine
+	li $a1, 5
+	jal DrawPoint
+	li $a0, 61  
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint
+	li $a0, 62
+	li $a1, 1  
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint 
+	li $a1, 4
+	jal DrawPoint 
+	li $a1, 5
+	jal DrawPoint
+	j SaltoScore	
+SeisUnidad:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 60
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 61
+	jal DrawVerticalLine 
+	li $a0, 62
+	jal DrawVerticalLine 
+	#dibuja el numero 6:
+	li $a0, 60
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine
+	li $a0, 61  
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint
+	li $a1, 5
+	jal DrawPoint
+	li $a0, 62
+	li $a1, 1  
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint 
+	li $a1, 4
+	jal DrawPoint 
+	li $a1, 5
+	jal DrawPoint
+	j SaltoScore	
+SieteUnidad:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 60
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 61
+	jal DrawVerticalLine 
+	li $a0, 62
+	jal DrawVerticalLine 
+	#dibuja el numero 7:
+	li $a0, 62
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine
+	li $a0, 60  
+	li $a1, 1
+	jal DrawPoint
+	li $a0, 61  
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint  
+	j SaltoScore	
+OchoUnidad:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 60
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 61
+	jal DrawVerticalLine 
+	li $a0, 62
+	jal DrawVerticalLine 
+	#dibuja el numero 8:
+	li $a0, 60
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 62
+	jal DrawVerticalLine 
+	li $a0, 61
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint 
+	li $a1, 5
+	jal DrawPoint 
+	j SaltoScore	
+NueveUnidad:
+	#Limpia los espacios en donde se va a escribir el número (5?x3?):
+	li $a0, 60
+	li $a1, 1
+	lw $a2, ColorFondo
+	li $a3, 5
+	jal DrawVerticalLine 
+	li $a0, 61
+	jal DrawVerticalLine 
+	li $a0, 62
+	jal DrawVerticalLine 
+	#dibuja el numero 9:
+	li $a0, 62
+	li $a1, 1
+	lw $a2, colorBlanco
+	li $a3, 5
+	jal DrawVerticalLine
+	li $a0, 60  
+	li $a1, 1
+	li $a3, 3
+	jal DrawVerticalLine
+	li $a0, 61  
+	li $a1, 1
+	jal DrawPoint
+	li $a1, 3
+	jal DrawPoint
+	j SaltoScore	
